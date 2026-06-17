@@ -54,6 +54,7 @@ export default function SpotTheReal() {
           }
           return (
             <button key={i} className={cls} onClick={() => pick(i)} disabled={!!result}>
+              <span className="cc-mini-chip" />
               <span className="brand">{c.brand}</span>
               <span className="num">{c.number_pretty}</span>
               <span className="sub">

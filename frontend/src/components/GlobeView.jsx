@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Globe from 'react-globe.gl'
 
 const SERVICE_COLORS = {
@@ -38,25 +38,53 @@ export default function GlobeView({ events, honeypot }) {
     g.pointOfView({ lat: 25, lng: 12, altitude: 2.5 })
   }, [])
 
-  const arcs = events.map((e) => ({
-    startLat: e.lat,
-    startLng: e.lon,
-    endLat: e.target_lat,
-    endLng: e.target_lon,
-    color: colorFor(e.service),
-  }))
+  // Cache one stable arc object per event id, so globe.gl keeps each arc's dash
+  // animation flowing continuously instead of rebuilding (and restarting) every
+  // arc whenever a new attack arrives — that's what made it look like a carousel.
+  const arcCache = useRef(new Map())
+  const arcs = useMemo(() => {
+    const cache = arcCache.current
+    const live = new Set()
+    const list = events.map((e) => {
+      live.add(e.id)
+      let arc = cache.get(e.id)
+      if (!arc) {
+        const c = colorFor(e.service)
+        arc = {
+          startLat: e.lat,
+          startLng: e.lon,
+          endLat: e.target_lat,
+          endLng: e.target_lon,
+          color: [`${c}00`, c],
+          dashInitialGap: Math.random() * 4,
+        }
+        cache.set(e.id, arc)
+      }
+      return arc
+    })
+    for (const id of cache.keys()) {
+      if (!live.has(id)) cache.delete(id)
+    }
+    return list
+  }, [events])
 
-  const points = events.slice(0, 60).map((e) => ({
-    lat: e.lat,
-    lng: e.lon,
-    color: colorFor(e.service),
-    size: 0.16,
-  }))
-  if (honeypot) {
-    points.push({ lat: honeypot.lat, lng: honeypot.lon, color: '#39ff14', size: 0.5 })
-  }
+  const points = useMemo(() => {
+    const pts = events.slice(0, 60).map((e) => ({
+      lat: e.lat,
+      lng: e.lon,
+      color: colorFor(e.service),
+      size: 0.16,
+    }))
+    if (honeypot) {
+      pts.push({ lat: honeypot.lat, lng: honeypot.lon, color: '#39ff14', size: 0.5 })
+    }
+    return pts
+  }, [events, honeypot])
 
-  const rings = honeypot ? [{ lat: honeypot.lat, lng: honeypot.lon }] : []
+  const rings = useMemo(
+    () => (honeypot ? [{ lat: honeypot.lat, lng: honeypot.lon }] : []),
+    [honeypot],
+  )
 
   return (
     <div className="globe-wrap" ref={wrapRef}>
@@ -73,12 +101,12 @@ export default function GlobeView({ events, honeypot }) {
         arcStartLng={(d) => d.startLng}
         arcEndLat={(d) => d.endLat}
         arcEndLng={(d) => d.endLng}
-        arcColor={(d) => [`${d.color}00`, d.color]}
-        arcStroke={0.4}
-        arcDashLength={0.45}
-        arcDashGap={0.6}
-        arcDashInitialGap={() => Math.random()}
-        arcDashAnimateTime={1600}
+        arcColor={(d) => d.color}
+        arcStroke={0.5}
+        arcDashLength={0.4}
+        arcDashGap={2}
+        arcDashInitialGap={(d) => d.dashInitialGap}
+        arcDashAnimateTime={2200}
         arcsTransitionDuration={0}
         pointsData={points}
         pointLat={(d) => d.lat}

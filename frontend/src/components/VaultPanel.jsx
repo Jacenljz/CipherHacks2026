@@ -74,13 +74,25 @@ export default function VaultPanel() {
       </div>
 
       {result && (
-        <div className="card">
-          <div className="brand">{result.brand}</div>
-          <div className="num">{result.number_pretty}</div>
-          <div className="meta">
-            <span>{result.holder}</span>
-            <span>EXP {result.expiry}</span>
-            <span>CVV {result.cvv}</span>
+        <div className="cc-card">
+          <div className="cc-top">
+            <span className="cc-chip" />
+            <span className="cc-brand">{result.brand}</span>
+          </div>
+          <div className="cc-number">{result.number_pretty}</div>
+          <div className="cc-bottom">
+            <div className="cc-field">
+              <label>Card Holder</label>
+              <span>{result.holder}</span>
+            </div>
+            <div className="cc-field">
+              <label>Valid Thru</label>
+              <span>{result.expiry}</span>
+            </div>
+            <div className="cc-field">
+              <label>CVV</label>
+              <span>{result.cvv}</span>
+            </div>
           </div>
         </div>
       )}
