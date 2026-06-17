@@ -17,6 +17,9 @@ const jsonPost = (path, body) =>
 export const getVaultMeta = () => fetchJSON('/api/vault')
 export const crackVault = (password) => jsonPost('/api/vault/crack', { password })
 export const floodVault = (count) => jsonPost('/api/vault/flood', { count })
+export const challengeVault = (n = 6) => jsonPost('/api/vault/challenge', { n })
+export const guessChallenge = (id, index) =>
+  jsonPost('/api/vault/challenge/guess', { id, index })
 
 // Open the live attack stream. `handlers` maps message type -> callback.
 export function connectAttackStream(handlers) {

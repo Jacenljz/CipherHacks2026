@@ -65,7 +65,7 @@ export default function GlobeView({ events, honeypot }) {
         width={size.width}
         height={size.height}
         backgroundColor="rgba(0,0,0,0)"
-        globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
+        globeImageUrl="/earth-night.jpg"
         atmosphereColor="#3b82f6"
         atmosphereAltitude={0.18}
         arcsData={arcs}

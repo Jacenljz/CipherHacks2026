@@ -125,3 +125,34 @@ body {
 .tick .src { color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tick .svc { color: var(--cyan); font-size: 11px; }
 .tick .cred { color: var(--danger); font-family: ui-monospace, monospace; font-size: 11px; }
+
+/* Top counters */
+.counters { display: flex; gap: 28px; }
+.counter .num.fake { color: var(--amber); }
+
+/* Spot the real card */
+.spot-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.spot-card {
+  text-align: left; cursor: pointer; border: 1px solid var(--border); border-radius: 9px;
+  background: linear-gradient(135deg, #15264a, #0c1530); color: var(--text);
+  padding: 10px 11px; display: flex; flex-direction: column; gap: 4px; position: relative;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.spot-card:hover:not(:disabled) { border-color: var(--cyan); transform: translateY(-1px); }
+.spot-card .brand { font-size: 10px; color: var(--cyan); letter-spacing: 1px; }
+.spot-card .num { font-size: 13px; letter-spacing: 1px; color: #fff; font-variant-numeric: tabular-nums; }
+.spot-card .sub { font-size: 10px; color: var(--muted); }
+.spot-card.picked { border-color: var(--cyan); }
+.spot-card.real { border-color: var(--green); box-shadow: 0 0 16px rgba(57, 255, 20, 0.25); }
+.spot-card.wrong { border-color: var(--danger); opacity: 0.85; }
+.spot-card:disabled { cursor: default; }
+.spot-verdict { margin-top: 10px; font-size: 12px; line-height: 1.5; display: flex; flex-direction: column; gap: 8px; }
+.spot-verdict.ok { color: var(--amber); }
+.spot-verdict.no { color: var(--green); }
+.spot-verdict .btn { align-self: flex-start; }
+
+/* Flood banner */
+.flood-banner {
+  margin-top: 12px; padding: 8px 10px; border-radius: 7px; font-size: 12px;
+  background: rgba(255, 59, 92, 0.12); border: 1px solid rgba(255, 59, 92, 0.4); color: #ffd0d8;
+}

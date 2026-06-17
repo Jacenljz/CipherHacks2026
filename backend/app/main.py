@@ -15,6 +15,7 @@ If a built frontend exists at ../frontend/dist it is served at /.
 from __future__ import annotations
 
 import asyncio
+import os
 import random
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -26,6 +27,7 @@ from pydantic import BaseModel, Field
 
 from . import vault
 from .attacks import AttackSimulator
+from .attacks.cowrie import CowrieTailer
 from .attacks.data import HONEYPOT
 
 simulator = AttackSimulator()
@@ -55,17 +57,39 @@ class ConnectionManager:
 manager = ConnectionManager()
 
 
+def _stats() -> dict:
+    """Combine attack leaderboards with the running decoy-served counter."""
+    return {**simulator.stats(), "decoys_served": vault.decoys_served()}
+
+
+def _make_source():
+    """Use a real Cowrie log if MIRAGE_COWRIE_LOG points at one, else the
+    built-in simulator (returns None)."""
+    log = os.environ.get("MIRAGE_COWRIE_LOG")
+    if log and Path(log).exists():
+        return CowrieTailer(log)
+    return None
+
+
 async def _attack_loop() -> None:
-    """Continuously emit attack events and periodic leaderboard updates."""
+    """Stream attack events (real Cowrie log if configured, else the simulator)
+    plus periodic leaderboard updates."""
+    tailer = _make_source()
     ticks = 0
     try:
         while True:
-            event = simulator.random_event()
-            await manager.broadcast({"type": "attack", "event": event.to_dict()})
-            ticks += 1
-            if ticks % 5 == 0:
-                await manager.broadcast({"type": "stats", "stats": simulator.stats()})
-            await asyncio.sleep(random.uniform(0.35, 1.1))
+            if tailer is not None:
+                events = [simulator.ingest(fields) for fields in tailer.poll()]
+            else:
+                events = [simulator.random_event()]
+            for event in events:
+                await manager.broadcast({"type": "attack", "event": event.to_dict()})
+                ticks += 1
+                if ticks % 5 == 0:
+                    await manager.broadcast({"type": "stats", "stats": _stats()})
+            if not events:
+                await manager.broadcast({"type": "stats", "stats": _stats()})
+            await asyncio.sleep(1.0 if tailer is not None else random.uniform(0.35, 1.1))
     except asyncio.CancelledError:
         pass
 
@@ -96,6 +120,15 @@ class FloodRequest(BaseModel):
     count: int = Field(default=25, ge=1, le=200)
 
 
+class ChallengeRequest(BaseModel):
+    n: int = Field(default=6, ge=2, le=12)
+
+
+class GuessRequest(BaseModel):
+    id: str
+    index: int
+
+
 @app.get("/api/health")
 def health() -> dict:
     return {"status": "ok"}
@@ -121,9 +154,19 @@ def post_flood(req: FloodRequest) -> dict:
     return {"results": vault.flood(req.count)}
 
 
+@app.post("/api/vault/challenge")
+def post_challenge(req: ChallengeRequest) -> dict:
+    return vault.challenge(req.n)
+
+
+@app.post("/api/vault/challenge/guess")
+def post_challenge_guess(req: GuessRequest) -> dict:
+    return vault.guess_challenge(req.id, req.index)
+
+
 @app.get("/api/stats")
 def get_stats() -> dict:
-    return simulator.stats()
+    return _stats()
 
 
 @app.get("/api/attacks/recent")
@@ -140,7 +183,7 @@ async def ws_attacks(ws: WebSocket) -> None:
                 "type": "init",
                 "honeypot": HONEYPOT,
                 "events": simulator.recent(),
-                "stats": simulator.stats(),
+                "stats": _stats(),
             }
         )
         while True:

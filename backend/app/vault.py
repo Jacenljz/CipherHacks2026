@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import os
 import random
+import uuid
 
 from .honey import SEED_SPACE, decode_seed, encode_card, honey_decrypt, honey_encrypt
 
@@ -29,6 +30,10 @@ WORDLIST = [
     "password1", "admin", "root", "hunter2", "summer2024", "p@ssw0rd", "123123",
     "qwerty123", "superman",
 ]
+
+CHALLENGE_SIZE = 6
+_decoys_served = 0
+_challenges: dict[str, int] = {}
 
 
 def metadata() -> dict:
@@ -65,6 +70,7 @@ def flood(count: int) -> list[dict]:
     brute force yields, but without paying the PBKDF2 cost thousands of times.
     The real seed is skipped so the flood only ever shows decoys.
     """
+    global _decoys_served
     count = max(1, min(count, 200))
     results = []
     for _ in range(count):
@@ -72,4 +78,39 @@ def flood(count: int) -> list[dict]:
         if seed == _REAL_SEED:
             seed = (seed + 1) % SEED_SPACE
         results.append({"guess": _random_guess(), "card": decode_seed(seed).to_dict()})
+    _decoys_served += len(results)
     return results
+
+
+def decoys_served() -> int:
+    """Total number of believable decoy cards Mirage has handed out."""
+    return _decoys_served
+
+
+def challenge(n: int = CHALLENGE_SIZE) -> dict:
+    """Build a 'spot the real card' round: one designated-real card among decoys.
+
+    All cards are equally valid and plausible; the whole point is that the player
+    cannot tell which is the secret. The real index is kept server-side.
+    """
+    global _decoys_served
+    seeds: set[int] = set()
+    while len(seeds) < n:
+        seeds.add(random.randrange(SEED_SPACE))
+    cards = [decode_seed(s).to_dict() for s in seeds]
+    real_index = random.randrange(n)
+    cid = uuid.uuid4().hex
+    if len(_challenges) > 100:
+        _challenges.clear()
+    _challenges[cid] = real_index
+    _decoys_served += n - 1
+    return {"id": cid, "cards": cards}
+
+
+def guess_challenge(cid: str, index: int) -> dict:
+    """Resolve a challenge guess; reveals the real index. A correct guess was
+    only ever luck — there is no signal to distinguish the cards."""
+    if cid not in _challenges:
+        return {"expired": True, "correct": False, "real_index": -1}
+    real_index = _challenges.pop(cid)
+    return {"expired": False, "correct": index == real_index, "real_index": real_index}

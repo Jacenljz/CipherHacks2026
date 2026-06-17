@@ -86,14 +86,20 @@ export default function VaultPanel() {
       )}
 
       {flood.length > 0 && (
-        <div className="flood-list">
-          {flood.map((r, i) => (
-            <div className="flood-row" key={`${r.card.number}-${i}`}>
-              <span className="g">{r.guess}</span>
-              <span className="n">{r.card.number_pretty}</span>
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="flood-banner">
+            {flood.length} believable fakes generated — all worthless. Which is
+            real? You can't tell.
+          </div>
+          <div className="flood-list">
+            {flood.map((r, i) => (
+              <div className="flood-row" key={`${r.card.number}-${i}`}>
+                <span className="g">{r.guess}</span>
+                <span className="n">{r.card.number_pretty}</span>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

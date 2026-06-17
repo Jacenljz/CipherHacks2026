@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import GlobeView from './components/GlobeView'
 import VaultPanel from './components/VaultPanel'
+import SpotTheReal from './components/SpotTheReal'
 import Leaderboard from './components/Leaderboard'
 import AttackTicker from './components/AttackTicker'
 import { connectAttackStream } from './api'
@@ -38,9 +39,15 @@ export default function App() {
             Live cyber-deception battlestation · attackers steal only believable lies
           </span>
         </div>
-        <div className="counter">
-          <div className="num">{(stats?.total ?? 0).toLocaleString()}</div>
-          <div className="lbl">Attacks captured</div>
+        <div className="counters">
+          <div className="counter">
+            <div className="num">{(stats?.total ?? 0).toLocaleString()}</div>
+            <div className="lbl">Attacks captured</div>
+          </div>
+          <div className="counter">
+            <div className="num fake">{(stats?.decoys_served ?? 0).toLocaleString()}</div>
+            <div className="lbl">Decoys served</div>
+          </div>
         </div>
       </header>
 
@@ -55,6 +62,7 @@ export default function App() {
         </div>
         <aside className="sidebar">
           <VaultPanel />
+          <SpotTheReal />
           <Leaderboard stats={stats} />
           <AttackTicker events={events} />
         </aside>

@@ -50,34 +50,38 @@ class AttackSimulator:
     _countries: Counter = field(default_factory=Counter)
     _usernames: Counter = field(default_factory=Counter)
 
+    def ingest(self, fields: dict) -> AttackEvent:
+        """Record an event (from the simulator or a real honeypot) and update
+        the leaderboards. ``fields`` holds every AttackEvent field except id."""
+        event = AttackEvent(id=self._next_id, **fields)
+        self._next_id += 1
+        self.total += 1
+        self._recent.append(event)
+        self._passwords[event.password] += 1
+        self._countries[event.country_code] += 1
+        self._usernames[event.username] += 1
+        return event
+
     def random_event(self) -> AttackEvent:
         city, country_code, lat, lon, _ = random.choices(SOURCES, _SOURCE_WEIGHTS)[0]
         username, password = random.choice(CREDENTIALS)
         port, service = random.choice(SERVICES)
-
-        event = AttackEvent(
-            id=self._next_id,
-            timestamp=datetime.now(timezone.utc).isoformat(),
-            ip=_fake_public_ip(),
-            city=city,
-            country_code=country_code,
-            lat=lat,
-            lon=lon,
-            target_lat=HONEYPOT["lat"],
-            target_lon=HONEYPOT["lon"],
-            port=port,
-            service=service,
-            username=username,
-            password=password,
+        return self.ingest(
+            {
+                "timestamp": datetime.now(timezone.utc).isoformat(),
+                "ip": _fake_public_ip(),
+                "city": city,
+                "country_code": country_code,
+                "lat": lat,
+                "lon": lon,
+                "target_lat": HONEYPOT["lat"],
+                "target_lon": HONEYPOT["lon"],
+                "port": port,
+                "service": service,
+                "username": username,
+                "password": password,
+            }
         )
-
-        self._next_id += 1
-        self.total += 1
-        self._recent.append(event)
-        self._passwords[password] += 1
-        self._countries[country_code] += 1
-        self._usernames[username] += 1
-        return event
 
     @staticmethod
     def _top(counter: Counter, limit: int) -> list[dict]:
