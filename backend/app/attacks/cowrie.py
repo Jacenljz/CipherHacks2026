@@ -25,7 +25,11 @@ try:  # optional dependency, only needed for precise geolocation
 except Exception:  # noqa: BLE001
     geoip2 = None
 
-_LOGIN_EVENTS = {"cowrie.login.failed", "cowrie.login.success"}
+_ATTACK_EVENTS = {
+    "cowrie.login.failed",
+    "cowrie.login.success",
+    "cowrie.session.connect",
+}
 _PROTOCOL_SERVICE = {"ssh": (22, "SSH"), "telnet": (23, "Telnet")}
 _reader = None  # cached GeoIP reader (or False once we know there isn't one)
 
@@ -74,7 +78,7 @@ def resolve_geo(ip: str):
 
 def parse_cowrie_event(obj: dict, geo=resolve_geo) -> dict | None:
     """Map one Cowrie log object to AttackEvent fields, or None if irrelevant."""
-    if obj.get("eventid") not in _LOGIN_EVENTS:
+    if obj.get("eventid") not in _ATTACK_EVENTS:
         return None
     ip = obj.get("src_ip")
     if not ip:

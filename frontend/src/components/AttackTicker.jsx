@@ -10,7 +10,7 @@ export default function AttackTicker({ events }) {
             <span className="flag">{flag(e.country_code)}</span>
             <span className="src">{e.city}</span>
             <span className="svc">{e.service}:{e.port}</span>
-            <span className="cred">{e.username}/{e.password}</span>
+            <span className="cred">{e.username ? `${e.username}/${e.password}` : 'connect'}</span>
           </div>
         ))}
       </div>

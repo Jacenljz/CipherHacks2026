@@ -57,9 +57,13 @@ class AttackSimulator:
         self._next_id += 1
         self.total += 1
         self._recent.append(event)
-        self._passwords[event.password] += 1
         self._countries[event.country_code] += 1
-        self._usernames[event.username] += 1
+        # Connection-only events (e.g. a port probe) carry no credentials, so
+        # only count non-empty ones to keep the leaderboards clean.
+        if event.password:
+            self._passwords[event.password] += 1
+        if event.username:
+            self._usernames[event.username] += 1
         return event
 
     def random_event(self) -> AttackEvent:

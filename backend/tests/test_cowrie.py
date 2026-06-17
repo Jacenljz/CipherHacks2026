@@ -15,7 +15,12 @@ LOGIN = {
     "protocol": "ssh",
     "timestamp": "2026-06-17T10:00:00Z",
 }
-NOISE = {"eventid": "cowrie.session.connect", "src_ip": "203.0.113.7"}
+NOISE = {"eventid": "cowrie.client.version", "src_ip": "203.0.113.7"}
+CONNECT = {
+    "eventid": "cowrie.session.connect",
+    "src_ip": "203.0.113.7",
+    "protocol": "telnet",
+}
 
 EVENT_FIELDS = {
     "timestamp", "ip", "city", "country_code", "lat", "lon",
@@ -36,8 +41,15 @@ class ParseTests(unittest.TestCase):
         fields = parse_cowrie_event({**LOGIN, "protocol": "telnet"})
         self.assertEqual((fields["port"], fields["service"]), (23, "Telnet"))
 
-    def test_non_login_event_ignored(self):
+    def test_non_attack_event_ignored(self):
         self.assertIsNone(parse_cowrie_event(NOISE))
+
+    def test_connection_event_parsed_without_credentials(self):
+        fields = parse_cowrie_event(CONNECT)
+        self.assertIsNotNone(fields)
+        self.assertEqual((fields["port"], fields["service"]), (23, "Telnet"))
+        self.assertEqual(fields["username"], "")
+        self.assertEqual(fields["password"], "")
 
     def test_event_without_ip_ignored(self):
         self.assertIsNone(parse_cowrie_event({"eventid": "cowrie.login.failed"}))
