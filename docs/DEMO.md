@@ -54,9 +54,11 @@ technical depth for judges.
 - **"Is this just calling an API?"** No. The core is a Distribution-Transforming
   Encoder + PBKDF2 honey-encryption scheme we implemented; 19 unit tests prove
   every key yields a valid credential. See `backend/app/honey/`.
-- **"Are the attacks real?"** The data path is real: point `CHAFF_COWRIE_LOG`
-  at a live Cowrie honeypot and the same globe shows genuine attackers. The
-  built-in simulator is the offline fallback for a reliable demo.
+- **"Are the attacks real?"** Yes — and we prove it on screen. The top-bar badge
+  reads **LIVE · real honeypot** when the feed is a real Cowrie log (vs
+  **SIMULATED**), and `GET /api/source` returns `{"mode":"cowrie"}`. Point
+  `CHAFF_COWRIE_LOG` at a live Cowrie honeypot and the globe shows genuine
+  attackers; the built-in simulator is only the offline fallback.
 - **"How does the legitimate owner know they got the real credential?"** They know
   their own password. Honey Encryption protects against *brute-force attackers*,
   who have no such oracle.
@@ -69,5 +71,5 @@ technical depth for judges.
 - Globe blank → check the texture loads; the simulator still streams data
   regardless. Refresh.
 - Backend down → restart uvicorn; the demo is stateless.
-- No network → everything works locally except, if you swap in a CDN texture;
-  we ship the texture locally to avoid this.
+- No network → everything still works; the earth texture and flag font are
+  bundled locally, and the simulator stands in if the honeypot is unreachable.

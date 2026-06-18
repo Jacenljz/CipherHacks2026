@@ -13,7 +13,7 @@ Every server on the public internet is under constant **automated attack** — c
 Two halves that reinforce each other:
 
 1. **The Globe (the spectacle).** A real-time 3D globe showing *actual* attackers from around the world hitting our honeypot live — their location, the passwords they try, the commands they run.
-2. **The Chaff (the brains).** The "vault" they're trying to crack is protected by **Honey Encryption**. Every wrong key decrypts to a *different, completely believable* fake (e.g. a valid-looking server credential that looks completely real). The attacker drowns in plausible fakes and cannot identify the real data — if there is any.
+2. **The Chaff (the brains).** The "vault" they're trying to crack is protected by **Honey Encryption**. Every wrong key decrypts to a *different, completely believable* fake (e.g. a real-looking server credential — service, host, username, and secret). The attacker drowns in plausible fakes and cannot identify the real data — if there is any.
 
 This is **active cyber-deception**, a real and respected branch of security.
 
@@ -47,7 +47,7 @@ The honeypot's "vault" ─► protected by Honey Encryption ─►
 - **Backend:** Python (FastAPI) — parse logs, add geolocation (MaxMind GeoLite2), stream to the frontend over WebSocket.
 - **Frontend:** React + react-globe.gl (three.js) — the live globe, counters, leaderboards, and the interactive "Vault" panel.
 - **Honey Encryption:** Python module (start with the server-credential domain; realistic passwords as a stretch).
-- **Deploy:** frontend on Vercel; backend + honeypot on the VPS.
+- **Deploy:** a single Google Cloud VPS runs the Cowrie honeypot and the app (FastAPI serves the built React frontend).
 
 ## 48-hour plan
 | Phase | Focus |
