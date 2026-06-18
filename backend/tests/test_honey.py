@@ -1,6 +1,6 @@
 """Unit tests for the Honey Encryption core (server-credential vault).
 
-These prove the property that makes Mirage work: every key — right or wrong —
+These prove the property that makes Chaff work: every key — right or wrong —
 yields a believable credential, and the real one only comes back for the correct
 password.
 """

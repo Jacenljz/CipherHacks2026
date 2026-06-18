@@ -1,4 +1,4 @@
-"""Live attack feed for the Mirage globe.
+"""Live attack feed for the Chaff globe.
 
 In production this is replaced by a tail of a real Cowrie honeypot log; the
 simulator here generates statistically realistic events so the globe always has

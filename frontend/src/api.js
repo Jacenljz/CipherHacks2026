@@ -1,4 +1,4 @@
-// Thin client for the Mirage backend. All URLs are relative so the same build
+// Thin client for the Chaff backend. All URLs are relative so the same build
 // works behind the Vite dev proxy and when served directly by FastAPI.
 
 export async function fetchJSON(path, options) {

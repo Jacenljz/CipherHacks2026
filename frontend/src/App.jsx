@@ -33,7 +33,7 @@ export default function App() {
       <header className="topbar">
         <div className="brand">
           <h1>
-            MIRAGE<span className="dot">.</span>
+            CHAFF<span className="dot">.</span>
           </h1>
           <span className="tag">
             Live cyber-deception battlestation · attackers steal only believable lies

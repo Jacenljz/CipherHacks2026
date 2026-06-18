@@ -1,4 +1,4 @@
-"""Mirage FastAPI backend.
+"""Chaff FastAPI backend.
 
 Exposes:
   * GET  /api/health           — liveness probe
@@ -63,9 +63,9 @@ def _stats() -> dict:
 
 
 def _make_source():
-    """Use a real Cowrie log if MIRAGE_COWRIE_LOG points at one, else the
+    """Use a real Cowrie log if CHAFF_COWRIE_LOG points at one, else the
     built-in simulator (returns None)."""
-    log = os.environ.get("MIRAGE_COWRIE_LOG")
+    log = os.environ.get("CHAFF_COWRIE_LOG")
     if log and Path(log).exists():
         return CowrieTailer(log)
     return None
@@ -103,7 +103,7 @@ async def lifespan(app: FastAPI):
         task.cancel()
 
 
-app = FastAPI(title="Mirage", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="Chaff", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

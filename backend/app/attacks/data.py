@@ -10,12 +10,12 @@ from __future__ import annotations
 import os
 
 # Where our decoy server lives. Defaults to GCP us-west2 (Los Angeles); override
-# per deployment with the MIRAGE_HONEYPOT_* env vars.
+# per deployment with the CHAFF_HONEYPOT_* env vars.
 HONEYPOT = {
-    "city": os.environ.get("MIRAGE_HONEYPOT_CITY", "Los Angeles"),
-    "country_code": os.environ.get("MIRAGE_HONEYPOT_CC", "US"),
-    "lat": float(os.environ.get("MIRAGE_HONEYPOT_LAT", "34.05")),
-    "lon": float(os.environ.get("MIRAGE_HONEYPOT_LON", "-118.24")),
+    "city": os.environ.get("CHAFF_HONEYPOT_CITY", "Los Angeles"),
+    "country_code": os.environ.get("CHAFF_HONEYPOT_CC", "US"),
+    "lat": float(os.environ.get("CHAFF_HONEYPOT_LAT", "34.05")),
+    "lon": float(os.environ.get("CHAFF_HONEYPOT_LON", "-118.24")),
 }
 
 # (city, country_code, latitude, longitude, weight)

@@ -1,12 +1,12 @@
-"""Adapter that turns a real Cowrie honeypot's JSON log into Mirage events.
+"""Adapter that turns a real Cowrie honeypot's JSON log into Chaff events.
 
 Cowrie (https://github.com/cowrie/cowrie) writes one JSON object per line. We
 care about its login attempts; each is mapped to the same event shape the globe
 already consumes, so swapping the simulator for real data is a drop-in change:
 
-    export MIRAGE_COWRIE_LOG=/path/to/cowrie/var/log/cowrie/cowrie.json
+    export CHAFF_COWRIE_LOG=/path/to/cowrie/var/log/cowrie/cowrie.json
 
-Geolocation uses MaxMind GeoLite2 when available (set MIRAGE_GEOIP_DB and
+Geolocation uses MaxMind GeoLite2 when available (set CHAFF_GEOIP_DB and
 `pip install geoip2`); otherwise it falls back to a deterministic location
 derived from the IP so the globe still lights up.
 """
@@ -38,7 +38,7 @@ def _geoip_reader():
     global _reader
     if _reader is not None:
         return _reader or None
-    db = os.environ.get("MIRAGE_GEOIP_DB")
+    db = os.environ.get("CHAFF_GEOIP_DB")
     if not db or geoip2 is None:
         _reader = False
         return None

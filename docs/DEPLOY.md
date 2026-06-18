@@ -1,7 +1,7 @@
-# Deploying Mirage with a Real Cowrie Honeypot
+# Deploying Chaff with a Real Cowrie Honeypot
 
 This turns the simulated globe into **real, live attacks**: deploy a Cowrie
-honeypot on a public VPS and point Mirage at its log. Works on any Ubuntu
+honeypot on a public VPS and point Chaff at its log. Works on any Ubuntu
 22.04/24.04 host.
 
 ## 0. Pick a host
@@ -35,7 +35,7 @@ ssh -p 22022 youruser@YOUR_VPS_IP
 ## 2. Open firewall / security-group ports
 
 Allow inbound TCP: **22** (honeypot SSH), **23** (honeypot Telnet), **22022**
-(your admin SSH), **8000** (Mirage UI, if you serve it from the VPS).
+(your admin SSH), **8000** (Chaff UI, if you serve it from the VPS).
 
 - **GCP:** VPC Network → Firewall → rule allowing `tcp:22,23,8000,22022`.
 - **Oracle:** add ingress rules in the Security List **and**
@@ -86,26 +86,26 @@ sudo apt install -y iptables-persistent && sudo netfilter-persistent save
 Real bots hitting `:22`/`:23` now land in the honeypot. Within minutes you'll
 see login attempts in `cowrie.json`.
 
-## 5. Point Mirage at the log
+## 5. Point Chaff at the log
 
-**Option A — run Mirage on the VPS (simplest):** clone this repo, build the
+**Option A — run Chaff on the VPS (simplest):** clone this repo, build the
 frontend (`npm --prefix frontend run build`), then:
 
 ```bash
-export MIRAGE_COWRIE_LOG=/home/cowrie/cowrie/var/log/cowrie/cowrie.json
+export CHAFF_COWRIE_LOG=/home/cowrie/cowrie/var/log/cowrie/cowrie.json
 backend/.venv/bin/python -m uvicorn app.main:app --app-dir backend \
   --host 0.0.0.0 --port 8000
 ```
 
 Open `http://YOUR_VPS_IP:8000` — the globe now shows real attacks.
 
-**Option B — run Mirage on your laptop, sync the log (more robust for a live
+**Option B — run Chaff on your laptop, sync the log (more robust for a live
 demo):**
 
 ```bash
 # from Git Bash on Windows, or any unix shell
 scp -P 22022 cowrie@YOUR_VPS_IP:/home/cowrie/cowrie/var/log/cowrie/cowrie.json ./cowrie.json
-export MIRAGE_COWRIE_LOG="$PWD/cowrie.json"
+export CHAFF_COWRIE_LOG="$PWD/cowrie.json"
 # re-run scp every minute or two to pull fresh attacks
 ```
 
@@ -113,13 +113,13 @@ The adapter tails the file incrementally, so re-syncing just appends new events.
 
 ## 6. (Recommended) Accurate geolocation
 
-Without a GeoIP database Mirage maps IPs to a deterministic fallback location.
+Without a GeoIP database Chaff maps IPs to a deterministic fallback location.
 For true coordinates:
 
 ```bash
 backend/.venv/bin/pip install geoip2
 # Download a free MaxMind GeoLite2-City.mmdb (free account at maxmind.com)
-export MIRAGE_GEOIP_DB=/path/to/GeoLite2-City.mmdb
+export CHAFF_GEOIP_DB=/path/to/GeoLite2-City.mmdb
 ```
 
 Every real attacker IP now resolves to its actual location.

@@ -15,10 +15,10 @@ import uuid
 from .honey import SEED_SPACE, decode_seed, honey_decrypt, honey_encrypt
 
 # Secret known only to the legitimate owner (server-side only, never returned).
-VAULT_PASSWORD = os.environ.get("MIRAGE_VAULT_PASSWORD", "M1rage-Tr0ub4dor&3")
+VAULT_PASSWORD = os.environ.get("CHAFF_VAULT_PASSWORD", "Ch4ff-Tr0ub4dor&3")
 # Stable seed of the one real credential the vault protects (override via env).
-REAL_SEED = int(os.environ.get("MIRAGE_REAL_SEED", "839571243017")) % SEED_SPACE
-VAULT_ITERATIONS = int(os.environ.get("MIRAGE_VAULT_ITERATIONS", "120000"))
+REAL_SEED = int(os.environ.get("CHAFF_REAL_SEED", "839571243017")) % SEED_SPACE
+VAULT_ITERATIONS = int(os.environ.get("CHAFF_VAULT_ITERATIONS", "120000"))
 
 _BLOB = honey_encrypt(VAULT_PASSWORD, REAL_SEED, iterations=VAULT_ITERATIONS)
 
@@ -63,7 +63,7 @@ def _random_guess() -> str:
 
 
 def decoys_served() -> int:
-    """Total number of believable decoy credentials Mirage has handed out."""
+    """Total number of believable decoy credentials Chaff has handed out."""
     return _decoys_served
 
 

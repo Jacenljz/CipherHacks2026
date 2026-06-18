@@ -1,45 +1,48 @@
-# Mirage 🍯🌍
+# Chaff 🌍🎣
 
 **A live cyber-deception battlestation for CipherHacks 2026.**
 
-Mirage shows real brute-force attacks streaming in against a honeypot on a 3D
+Chaff shows real brute-force attacks streaming in against a honeypot on a 3D
 globe — and the "vault" those attackers are trying to crack is protected by
-**Honey Encryption**: *every* password, right or wrong, decrypts to a
-believable, Luhn-valid credit card. Brute force becomes useless, because an
-attacker can never tell a real hit from a fake.
+**Honey Encryption**: *every* password, right or wrong, decrypts to a believable
+server credential. Brute force becomes useless, because an attacker can never
+tell a real secret from a fake.
 
 > We don't just watch hackers attack us — we drown them in believable lies.
 
-See [PROJECT.md](PROJECT.md) for the full concept, demo script, and pitch.
+The name fits twice over: military *chaff* floods enemy radar with false targets,
+and *chaff* is the worthless husk left after the grain is gone — which is exactly
+what every secret an attacker steals turns out to be.
 
 ## How it works
 
 ```
-Attackers (real Cowrie honeypot, or the built-in simulator)
-   → attack log  → geolocation → WebSocket → 3D globe (live)
+Real attackers (Cowrie honeypot, or the built-in simulator)
+   → attack log → geolocation → WebSocket → 3D globe (live)
 
 Vault secret → Honey Encryption (PBKDF2 + Distribution-Transforming Encoder)
-   → any password decrypts to a different, believable, Luhn-valid card
+   → any password decrypts to a believable, indistinguishable server credential
 ```
 
-The cryptographic core is a Honey Encryption scheme (Juels & Ristenpart, 2014):
-a DTE maps the real card into a uniform seed space before encryption, so
-decrypting with a wrong key yields a uniformly random — but always valid — card.
+The cryptographic core is Honey Encryption (Juels & Ristenpart, 2014): a DTE maps
+the real secret into a uniform 40-bit seed space before encryption, so decrypting
+with a wrong key yields a uniformly random — but always valid — credential.
 
 ## Repository layout
 
 ```
 backend/
   app/
-    honey/        Honey Encryption core (Luhn, DTE, encryption) — stdlib only
-    attacks/      attack simulator + geo/credential reference data
-    vault.py      the demo vault (one real card, honey-encrypted)
+    honey/        Honey Encryption core (DTE + PBKDF2) — stdlib only
+    attacks/      attack simulator, Cowrie log adapter, geo + profanity filter
+    vault.py      the demo vault (one real credential, honey-encrypted)
     main.py       FastAPI app: vault API + live attack WebSocket
-  tests/          unit tests for the crypto core
+  tests/          unit tests for the crypto core, adapter, and filter
 frontend/
-  src/            React + react-globe.gl UI (globe, vault panel, leaderboards)
-PROJECT.md        Mirage concept + pitch
-PROJECT-CLOAK.md  the alternative idea (adversarial-patch "invisibility")
+  src/            React + react-globe.gl UI (globe, vault, leaderboards)
+docs/
+  DEPLOY.md       deploy a real Cowrie honeypot and point Chaff at it
+  DEMO.md         2-minute demo run-of-show
 ```
 
 ## Prerequisites
@@ -69,8 +72,6 @@ npm run dev          # http://localhost:5173 (proxies /api and /ws to :8000)
 
 ### Single-process (production-style)
 
-Build the frontend, then let FastAPI serve it:
-
 ```bash
 npm --prefix frontend run build      # produces frontend/dist
 # restart uvicorn — it auto-serves frontend/dist at /
@@ -85,40 +86,44 @@ cd backend
 PYTHONPATH=. python -m unittest discover -s tests -v
 ```
 
-These prove the core property: every key yields a Luhn-valid card, and only the
+These prove the core property: every key yields a valid credential, and only the
 correct password returns the real one.
 
 ## Demo flow
 
-1. The globe lights up with attacks streaming in worldwide; the counter climbs.
+1. The globe lights up with attacks worldwide; the counter climbs.
 2. Open the **Honey Vault** panel. Enter the owner's password (default in
-   `backend/app/vault.py`, override with `MIRAGE_VAULT_PASSWORD`) → the real
-   card appears.
-3. Enter *any other* password → a different, equally believable card. Nothing
-   says which is real, because the server genuinely cannot tell.
-4. Hit **Run dictionary attack** → the screen floods with valid-looking cards.
-   "They stole 10,000 cards. All fake. And they'll never know which — if any —
-   is real."
+   `backend/app/vault.py`, override with `CHAFF_VAULT_PASSWORD`) → the real
+   credential appears.
+3. Enter *any other* password → a different, equally believable credential.
+   Nothing says which is real, because the server genuinely cannot tell.
+4. Hit **Run dictionary attack** → the screen floods with valid-looking
+   credentials. "They stole thousands of secrets. All fake. And they'll never
+   know which — if any — is real."
+5. **Spot the Real Secret** lets anyone try to pick the real credential out of a
+   lineup of decoys. Nobody can — that's the point.
 
 ## Configuration (env vars)
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `MIRAGE_VAULT_PASSWORD` | `M1rage-Tr0ub4dor&3` | the owner's secret (demo default) |
-| `MIRAGE_REAL_CARD` | `4242424242424242` | the single real record |
-| `MIRAGE_VAULT_ITERATIONS` | `120000` | PBKDF2 iterations |
+| `CHAFF_VAULT_PASSWORD` | `Ch4ff-Tr0ub4dor&3` | the owner's secret (demo default) |
+| `CHAFF_REAL_SEED` | `839571243017` | seed of the one real credential |
+| `CHAFF_VAULT_ITERATIONS` | `120000` | PBKDF2 iterations |
+| `CHAFF_COWRIE_LOG` | – | path to a real Cowrie JSON log (else: simulator) |
+| `CHAFF_GEOIP_DB` | – | MaxMind GeoLite2-City.mmdb for accurate geolocation |
+| `CHAFF_HONEYPOT_CITY/CC/LAT/LON` | Los Angeles | honeypot marker location |
 
 ## Going live with a real honeypot
 
-The built-in simulator stands in for — and is the offline fallback of — a real
-honeypot. To use real attack data, deploy [Cowrie](https://github.com/cowrie/cowrie)
-on a public VPS and replace `AttackSimulator` with a tail of its JSON log; the
-event shape (`ip`, `city`, `country_code`, `lat`, `lon`, `service`, `username`,
+See **docs/DEPLOY.md** — deploy [Cowrie](https://github.com/cowrie/cowrie) on a
+public VPS and point Chaff at its JSON log with `CHAFF_COWRIE_LOG`. The event
+shape (`ip`, `city`, `country_code`, `lat`, `lon`, `service`, `username`,
 `password`) is all the globe needs.
 
 ## Ethics & safety
 
-Mirage is **defensive**. A real deployment only passively receives unsolicited
-attacks (legal) and never strikes back; the honeypot should run on an isolated,
-firewalled host so it cannot be used as a pivot. The credit-card data is entirely
-synthetic — generated by the DTE, never real.
+Chaff is **defensive**. A real deployment only passively receives unsolicited
+attacks (legal) and never strikes back; the honeypot runs on an isolated,
+firewalled host. All credential data is synthetic — generated by the DTE, never
+real.

@@ -1,1 +1,1 @@
-"""Mirage backend application package."""
+"""Chaff backend application package."""
