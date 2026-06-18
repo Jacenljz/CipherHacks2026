@@ -1,3 +1,12 @@
+/* Flag emoji don't render on Windows — this font supplies the glyphs, scoped to
+   the regional-indicator code points so it never touches normal text. */
+@font-face {
+  font-family: "Twemoji Country Flags";
+  src: url("/TwemojiCountryFlags.woff2") format("woff2");
+  unicode-range: U+1F1E6-1F1FF;
+  font-display: swap;
+}
+
 :root {
   --bg-0: #04060e;
   --glass: rgba(18, 26, 50, 0.55);
@@ -12,7 +21,7 @@
   --green: #4ade80;
   --danger: #ff4d6d;
   --amber: #ffc24b;
-  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  font-family: "Twemoji Country Flags", "Inter", "Segoe UI", system-ui, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -185,7 +194,7 @@ body {
 .cols h3 { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--faint); margin: 0 0 10px; }
 .bar-row { margin-bottom: 10px; }
 .bar-row .label { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; margin-bottom: 5px; }
-.bar-row .label .v { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: ui-monospace, monospace; }
+.bar-row .label .v { color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: "Twemoji Country Flags", ui-monospace, monospace; }
 .bar-row .label .c { color: var(--faint); font-variant-numeric: tabular-nums; }
 .bar { height: 7px; border-radius: 5px; background: rgba(255, 255, 255, 0.05); overflow: hidden; }
 .bar > span { display: block; height: 100%; border-radius: 5px; background: linear-gradient(90deg, var(--cyan), var(--blue)); box-shadow: 0 0 10px rgba(56, 225, 255, 0.4); }
