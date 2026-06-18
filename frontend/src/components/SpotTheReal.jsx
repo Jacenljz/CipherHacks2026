@@ -38,13 +38,13 @@ export default function SpotTheReal() {
 
   return (
     <div className="panel">
-      <h2>🎴 Spot the Real Card</h2>
+      <h2>🔑 Spot the Real Secret</h2>
       <p className="note">
-        One of these is the real secret; the other five are Honey-Encryption
+        One of these is the real credential; the other five are Honey-Encryption
         decoys. Can you tell which is real?
       </p>
       <div className="spot-grid">
-        {round?.cards.map((c, i) => {
+        {round?.records.map((c, i) => {
           let cls = 'spot-card'
           if (result) {
             if (i === result.real_index) cls += ' real'
@@ -54,12 +54,11 @@ export default function SpotTheReal() {
           }
           return (
             <button key={i} className={cls} onClick={() => pick(i)} disabled={!!result}>
-              <span className="cc-mini-chip" />
-              <span className="brand">{c.brand}</span>
-              <span className="num">{c.number_pretty}</span>
-              <span className="sub">
-                {c.holder} · {c.expiry}
+              <span className="brand">{c.kind}</span>
+              <span className="num">
+                {c.username}@{c.host}
               </span>
+              <span className="sub secret-mini">{c.secret}</span>
             </button>
           )
         })}
@@ -69,7 +68,7 @@ export default function SpotTheReal() {
           <span>
             {result.correct
               ? 'You guessed right — but only by luck. Nothing distinguished it from the decoys.'
-              : "Wrong — and that's exactly the point. Every card is equally real."}
+              : "Wrong — and that's exactly the point. Every credential is equally real."}
           </span>
           <button className="btn" onClick={newRound} disabled={busy}>
             New round

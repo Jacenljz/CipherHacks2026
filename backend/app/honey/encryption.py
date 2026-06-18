@@ -1,21 +1,13 @@
-"""Honey Encryption built on top of the credit-card DTE.
+"""Honey Encryption over server-credential seeds.
 
-Construction (simplified Juels & Ristenpart, 2014):
+    encrypt:  ciphertext = (seed + PBKDF2(password, salt)) mod SEED_SPACE
+    decrypt:  seed'      = (ciphertext - PBKDF2(password, salt)) mod SEED_SPACE
+              cred'      = DTE.decode(seed')
 
-    encrypt:  seed       = DTE.encode(card)
-              pad        = PBKDF2(password, salt)  mod SEED_SPACE
-              ciphertext = (seed + pad)            mod SEED_SPACE
-
-    decrypt:  seed'      = (ciphertext - pad')     mod SEED_SPACE
-              card'      = DTE.decode(seed')
-
-For the correct password ``pad' == pad`` so ``seed' == seed`` and the real card
-comes back. For any wrong password ``pad'`` is pseudo-random, so ``seed'`` is
-~uniform over the seed space and ``DTE.decode`` returns an unrelated but fully
-believable card. The attacker has no oracle to tell the cases apart.
-
-PBKDF2 also makes every guess costly, so the scheme resists brute force twice
-over: by cost, and by hiding success.
+Any password yields a valid seed -> a believable credential. Only the owner's
+password recovers the real one, and nothing distinguishes the cases. PBKDF2 also
+makes every guess costly, so brute force fails twice over: by cost, and by hiding
+success in a sea of plausible decoys.
 """
 
 from __future__ import annotations
@@ -23,7 +15,7 @@ from __future__ import annotations
 import hashlib
 import secrets
 
-from .dte import SEED_SPACE, decode_seed, encode_card, FakeCard
+from .dte import SEED_SPACE, FakeCredential, decode_seed
 
 DEFAULT_ITERATIONS = 100_000
 _SALT_BYTES = 16
@@ -35,26 +27,21 @@ def _pad(password: str, salt: bytes, iterations: int) -> int:
     derived = hashlib.pbkdf2_hmac(
         "sha256", password.encode("utf-8"), salt, iterations, dklen=_DERIVED_BYTES
     )
-    # `_DERIVED_BYTES` (256 bits) is far larger than SEED_SPACE (~34 bits), so
-    # reducing mod SEED_SPACE introduces only negligible modulo bias.
+    # SEED_SPACE is a power of two, so taking the low bits is exactly uniform.
     return int.from_bytes(derived, "big") % SEED_SPACE
 
 
 def honey_encrypt(
-    password: str, card_number: str, iterations: int = DEFAULT_ITERATIONS
+    password: str, seed: int, iterations: int = DEFAULT_ITERATIONS
 ) -> dict:
-    """Honey-encrypt a real card number under ``password``.
-
-    Returns a JSON-serialisable blob: salt (hex), ciphertext (int), iterations.
-    """
-    seed = encode_card(card_number)
+    """Honey-encrypt the real credential's seed under ``password``."""
     salt = secrets.token_bytes(_SALT_BYTES)
     ciphertext = (seed + _pad(password, salt, iterations)) % SEED_SPACE
     return {"salt": salt.hex(), "ciphertext": ciphertext, "iterations": iterations}
 
 
-def honey_decrypt(password: str, blob: dict) -> FakeCard:
-    """Decrypt with any password; always returns a believable card."""
+def honey_decrypt(password: str, blob: dict) -> FakeCredential:
+    """Decrypt with any password; always returns a believable credential."""
     salt = bytes.fromhex(blob["salt"])
     iterations = int(blob["iterations"])
     seed = (int(blob["ciphertext"]) - _pad(password, salt, iterations)) % SEED_SPACE

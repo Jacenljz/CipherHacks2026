@@ -19,7 +19,7 @@ export default function VaultPanel() {
     setBusy(true)
     try {
       const r = await crackVault(password)
-      setResult(r.card)
+      setResult(r.record)
     } catch {
       /* ignore */
     } finally {
@@ -74,25 +74,19 @@ export default function VaultPanel() {
       </div>
 
       {result && (
-        <div className="cc-card">
-          <div className="cc-top">
-            <span className="cc-chip" />
-            <span className="cc-brand">{result.brand}</span>
+        <div className="secret-card">
+          <div className="secret-head">
+            <span className="secret-kind">🔑 {result.kind}</span>
+            <span className="secret-tag">EXFILTRATED</span>
           </div>
-          <div className="cc-number">{result.number_pretty}</div>
-          <div className="cc-bottom">
-            <div className="cc-field">
-              <label>Card Holder</label>
-              <span>{result.holder}</span>
-            </div>
-            <div className="cc-field">
-              <label>Valid Thru</label>
-              <span>{result.expiry}</span>
-            </div>
-            <div className="cc-field">
-              <label>CVV</label>
-              <span>{result.cvv}</span>
-            </div>
+          <div className="secret-host">{result.host}</div>
+          <div className="secret-field">
+            <label>user</label>
+            <code>{result.username}</code>
+          </div>
+          <div className="secret-field">
+            <label>secret</label>
+            <code className="secret-value">{result.secret}</code>
           </div>
         </div>
       )}
@@ -105,9 +99,9 @@ export default function VaultPanel() {
           </div>
           <div className="flood-list">
             {flood.map((r, i) => (
-              <div className="flood-row" key={`${r.card.number}-${i}`}>
-                <span className="g">{r.guess}</span>
-                <span className="n">{r.card.number_pretty}</span>
+              <div className="flood-row" key={`${r.record.secret}-${i}`}>
+                <span className="g">{r.record.username}</span>
+                <span className="n">{r.record.secret}</span>
               </div>
             ))}
           </div>

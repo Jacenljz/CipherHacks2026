@@ -1,8 +1,9 @@
-"""The demo vault: one real card, protected by Honey Encryption.
+"""The demo vault: a breached server's real credential, protected by Honey
+Encryption.
 
 The owner's password lives only on the server and is never exposed. An attacker
-can POST any guess to /api/vault/crack and always gets a believable card back —
-with no signal telling them whether it was the real one.
+can POST any guess to /api/vault/crack and always gets a believable credential
+back — with no signal telling them whether it was the real one.
 """
 
 from __future__ import annotations
@@ -11,24 +12,23 @@ import os
 import random
 import uuid
 
-from .honey import SEED_SPACE, decode_seed, encode_card, honey_decrypt, honey_encrypt
+from .honey import SEED_SPACE, decode_seed, honey_decrypt, honey_encrypt
 
 # Secret known only to the legitimate owner (server-side only, never returned).
 VAULT_PASSWORD = os.environ.get("MIRAGE_VAULT_PASSWORD", "M1rage-Tr0ub4dor&3")
-# The single real record the vault protects.
-REAL_CARD = os.environ.get("MIRAGE_REAL_CARD", "4242424242424242")
+# Stable seed of the one real credential the vault protects (override via env).
+REAL_SEED = int(os.environ.get("MIRAGE_REAL_SEED", "839571243017")) % SEED_SPACE
 VAULT_ITERATIONS = int(os.environ.get("MIRAGE_VAULT_ITERATIONS", "120000"))
 
-_REAL_SEED = encode_card(REAL_CARD)
-_BLOB = honey_encrypt(VAULT_PASSWORD, REAL_CARD, iterations=VAULT_ITERATIONS)
+_BLOB = honey_encrypt(VAULT_PASSWORD, REAL_SEED, iterations=VAULT_ITERATIONS)
 
 # Dictionary an automated attacker would throw at the vault.
 WORDLIST = [
-    "123456", "password", "12345678", "qwerty", "abc123", "monkey", "letmein",
-    "dragon", "111111", "baseball", "iloveyou", "trustno1", "sunshine", "master",
-    "welcome", "shadow", "ashley", "football", "jesus", "ninja", "mustang",
-    "password1", "admin", "root", "hunter2", "summer2024", "p@ssw0rd", "123123",
-    "qwerty123", "superman",
+    "123456", "password", "root", "admin", "toor", "letmein", "changeme",
+    "qwerty", "P@ssw0rd", "root123", "admin123", "welcome", "monkey",
+    "dragon", "111111", "iloveyou", "sunshine", "master", "shadow",
+    "superman", "hunter2", "summer2024", "passw0rd", "123123", "qazwsx",
+    "trustno1", "server2024", "postgres", "redis", "docker",
 ]
 
 CHALLENGE_SIZE = 6
@@ -38,21 +38,21 @@ _challenges: dict[str, int] = {}
 
 def metadata() -> dict:
     return {
-        "label": "ACME Corp — customer card vault",
+        "label": "prod-db-01 — root credential vault",
         "records": 1,
         "scheme": "Honey Encryption (PBKDF2-HMAC-SHA256 + DTE)",
         "iterations": VAULT_ITERATIONS,
         "note": (
-            "Every password decrypts to a valid card. Only the owner's password "
-            "returns the real one — and nothing reveals which result that is."
+            "Every password decrypts to a valid credential. Only the owner's "
+            "password returns the real one — and nothing reveals which result "
+            "that is."
         ),
     }
 
 
 def crack(password: str) -> dict:
     """Authentic Honey Encryption decryption of a single guess."""
-    card = honey_decrypt(password, _BLOB)
-    return {"guess": password, "card": card.to_dict()}
+    return {"guess": password, "record": honey_decrypt(password, _BLOB).to_dict()}
 
 
 def _random_guess() -> str:
@@ -60,6 +60,11 @@ def _random_guess() -> str:
     if random.random() < 0.4:
         guess += str(random.randint(0, 9999))
     return guess
+
+
+def decoys_served() -> int:
+    """Total number of believable decoy credentials Mirage has handed out."""
+    return _decoys_served
 
 
 def flood(count: int) -> list[dict]:
@@ -75,41 +80,35 @@ def flood(count: int) -> list[dict]:
     results = []
     for _ in range(count):
         seed = random.randrange(SEED_SPACE)
-        if seed == _REAL_SEED:
+        if seed == REAL_SEED:
             seed = (seed + 1) % SEED_SPACE
-        results.append({"guess": _random_guess(), "card": decode_seed(seed).to_dict()})
+        results.append({"guess": _random_guess(), "record": decode_seed(seed).to_dict()})
     _decoys_served += len(results)
     return results
 
 
-def decoys_served() -> int:
-    """Total number of believable decoy cards Mirage has handed out."""
-    return _decoys_served
-
-
 def challenge(n: int = CHALLENGE_SIZE) -> dict:
-    """Build a 'spot the real card' round: one designated-real card among decoys.
-
-    All cards are equally valid and plausible; the whole point is that the player
-    cannot tell which is the secret. The real index is kept server-side.
+    """Build a 'spot the real credential' round: one designated-real record among
+    decoys. All are equally valid and plausible; the player cannot tell which is
+    the secret. The real index is kept server-side.
     """
     global _decoys_served
     seeds: set[int] = set()
     while len(seeds) < n:
         seeds.add(random.randrange(SEED_SPACE))
-    cards = [decode_seed(s).to_dict() for s in seeds]
+    records = [decode_seed(s).to_dict() for s in seeds]
     real_index = random.randrange(n)
     cid = uuid.uuid4().hex
     if len(_challenges) > 100:
         _challenges.clear()
     _challenges[cid] = real_index
     _decoys_served += n - 1
-    return {"id": cid, "cards": cards}
+    return {"id": cid, "records": records}
 
 
 def guess_challenge(cid: str, index: int) -> dict:
     """Resolve a challenge guess; reveals the real index. A correct guess was
-    only ever luck — there is no signal to distinguish the cards."""
+    only ever luck — there is no signal to distinguish the records."""
     if cid not in _challenges:
         return {"expired": True, "correct": False, "real_index": -1}
     real_index = _challenges.pop(cid)
