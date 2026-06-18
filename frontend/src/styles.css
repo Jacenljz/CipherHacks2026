@@ -66,6 +66,18 @@ body {
 .counter .num.fake { color: var(--amber); text-shadow: 0 0 18px rgba(255, 194, 75, 0.3); }
 .counter .lbl { margin-top: 6px; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--faint); }
 
+.topbar-right { display: flex; align-items: center; gap: 26px; }
+.source-badge {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 13px; border-radius: 20px;
+  font-size: 11px; font-weight: 700; letter-spacing: 1px; white-space: nowrap;
+}
+.source-badge::before { content: ""; width: 8px; height: 8px; border-radius: 50%; }
+.source-badge.live { color: #4ade80; background: rgba(74, 222, 128, 0.1); border: 1px solid rgba(74, 222, 128, 0.35); }
+.source-badge.live::before { background: #4ade80; box-shadow: 0 0 10px #4ade80; animation: pulse 1.4s infinite; }
+.source-badge.sim { color: var(--amber); background: rgba(255, 194, 75, 0.1); border: 1px solid rgba(255, 194, 75, 0.35); }
+.source-badge.sim::before { background: var(--amber); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
 /* ---------- Layout ---------- */
 .layout { flex: 1; display: flex; min-height: 0; }
 .globe-col { flex: 1; position: relative; min-width: 0; }

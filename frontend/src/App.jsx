@@ -12,11 +12,13 @@ export default function App() {
   const [events, setEvents] = useState([])
   const [stats, setStats] = useState(null)
   const [honeypot, setHoneypot] = useState(null)
+  const [source, setSource] = useState(null)
   const wsRef = useRef(null)
 
   useEffect(() => {
     const ws = connectAttackStream({
       init: (m) => {
+        setSource(m.source)
         setHoneypot(m.honeypot)
         setStats(m.stats)
         setEvents(m.events.slice(-MAX_EVENTS).reverse())
@@ -39,14 +41,19 @@ export default function App() {
             Live cyber-deception battlestation · attackers steal only believable lies
           </span>
         </div>
-        <div className="counters">
-          <div className="counter">
-            <div className="num">{(stats?.total ?? 0).toLocaleString()}</div>
-            <div className="lbl">Attacks captured</div>
-          </div>
-          <div className="counter">
-            <div className="num fake">{(stats?.decoys_served ?? 0).toLocaleString()}</div>
-            <div className="lbl">Decoys served</div>
+        <div className="topbar-right">
+          <span className={`source-badge ${source?.mode === 'cowrie' ? 'live' : 'sim'}`}>
+            {source?.mode === 'cowrie' ? 'LIVE · real honeypot' : 'SIMULATED'}
+          </span>
+          <div className="counters">
+            <div className="counter">
+              <div className="num">{(stats?.total ?? 0).toLocaleString()}</div>
+              <div className="lbl">Attacks captured</div>
+            </div>
+            <div className="counter">
+              <div className="num fake">{(stats?.decoys_served ?? 0).toLocaleString()}</div>
+              <div className="lbl">Decoys served</div>
+            </div>
           </div>
         </div>
       </header>

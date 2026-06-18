@@ -71,6 +71,14 @@ def _make_source():
     return None
 
 
+def _source_info() -> dict:
+    """Report whether the live feed is a real Cowrie honeypot or the simulator."""
+    log = os.environ.get("CHAFF_COWRIE_LOG")
+    if log and Path(log).exists():
+        return {"mode": "cowrie", "log": log}
+    return {"mode": "simulator", "log": log}
+
+
 async def _attack_loop() -> None:
     """Stream attack events (real Cowrie log if configured, else the simulator)
     plus periodic leaderboard updates."""
@@ -139,6 +147,11 @@ def get_honeypot() -> dict:
     return HONEYPOT
 
 
+@app.get("/api/source")
+def get_source() -> dict:
+    return _source_info()
+
+
 @app.get("/api/vault")
 def get_vault() -> dict:
     return vault.metadata()
@@ -181,6 +194,7 @@ async def ws_attacks(ws: WebSocket) -> None:
         await ws.send_json(
             {
                 "type": "init",
+                "source": _source_info(),
                 "honeypot": HONEYPOT,
                 "events": simulator.recent(),
                 "stats": _stats(),
