@@ -10,12 +10,11 @@ from __future__ import annotations
 
 import re
 
-# Curated so the substrings don't appear inside common innocent passwords
-# (e.g. no bare "ass" — it lives inside "password").
+# Only the genuinely toxic words (the c-word + slurs) are masked. Common swears
+# like "fuck" are intentionally left visible as authentic attacker rage. Curated
+# so the substrings don't appear inside innocent passwords.
 _BAD = [
-    "motherfuck", "fuck", "shit", "bitch", "cunt", "pussy", "nigger", "nigga",
-    "faggot", "asshole", "whore", "slut", "dildo", "blowjob", "penis", "vagina",
-    "dick", "cock", "porn", "retard", "bastard", "wank",
+    "cunt", "nigger", "nigga", "faggot", "retard", "tranny",
 ]
 _PATTERN = re.compile("|".join(re.escape(w) for w in _BAD), re.IGNORECASE)
 
