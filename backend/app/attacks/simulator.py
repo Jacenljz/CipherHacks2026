@@ -8,6 +8,7 @@ from dataclasses import dataclass, field, asdict
 from datetime import datetime, timezone
 
 from .data import CREDENTIALS, HONEYPOT, SERVICES, SOURCES
+from .sanitize import clean
 
 _SOURCE_WEIGHTS = [weight for *_, weight in SOURCES]
 
@@ -53,6 +54,9 @@ class AttackSimulator:
     def ingest(self, fields: dict) -> AttackEvent:
         """Record an event (from the simulator or a real honeypot) and update
         the leaderboards. ``fields`` holds every AttackEvent field except id."""
+        fields = dict(fields)
+        fields["username"] = clean(fields.get("username", ""))
+        fields["password"] = clean(fields.get("password", ""))
         event = AttackEvent(id=self._next_id, **fields)
         self._next_id += 1
         self.total += 1
